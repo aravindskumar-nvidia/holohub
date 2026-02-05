@@ -81,11 +81,15 @@ def accumulate_data(data_dir, output_dir, num_frames=-1, depth_mode="binocular")
     if depth_mode == "monocular":
         depth_paths = sorted(glob.glob(os.path.join(data_dir, "monodepth", "*.png")))
         if not depth_paths:
-            print(f"\n❌ ERROR: No monodepth files found in {os.path.join(data_dir, 'monodepth')}")
+            print(f"\nERROR: No monodepth files found in {os.path.join(data_dir, 'monodepth')}")
             print("  For monocular mode, depth images should be in a 'monodepth' folder.")
             raise FileNotFoundError(f"No monodepth files in {os.path.join(data_dir, 'monodepth')}")
     else:
         depth_paths = sorted(glob.glob(os.path.join(data_dir, "depth", "*.png")))
+        if not depth_paths:
+            print(f"\nERROR: No depth files found in {os.path.join(data_dir, 'depth')}")
+            print("  For binocular mode, depth images should be in a 'depth' folder.")
+            raise FileNotFoundError(f"No depth files in {os.path.join(data_dir, 'depth')}")
     mask_paths = sorted(glob.glob(os.path.join(data_dir, "masks", "*.png")))
 
     # Report what we found
@@ -129,15 +133,15 @@ def accumulate_data(data_dir, output_dir, num_frames=-1, depth_mode="binocular")
             poses_list.append(pose_3x5)
 
         except FileNotFoundError as e:
-            print(f"\n❌ ERROR: File not found for frame {idx}")
+            print(f"\nERROR: File not found for frame {idx}")
             print(f"  {e}")
             raise
         except PermissionError as e:
-            print(f"\n❌ ERROR: Permission denied for frame {idx}")
+            print(f"\nERROR: Permission denied for frame {idx}")
             print(f"  {e}")
             raise
         except Exception as e:
-            print(f"\n❌ ERROR: Failed to process frame {idx}")
+            print(f"\nERROR: Failed to process frame {idx}")
             print(f"  Image: {image_paths[idx]}")
             print(f"  Depth: {depth_paths[idx]}")
             print(f"  Mask: {mask_paths[idx]}")
@@ -151,7 +155,7 @@ def accumulate_data(data_dir, output_dir, num_frames=-1, depth_mode="binocular")
     poses_bounds = np.concatenate([poses_flat, bounds], axis=1)
     np.save(ingestion_dir / "poses_bounds.npy", poses_bounds)
 
-    print("\n✅ Accumulation complete!")
+    print("\nAccumulation complete!")
     print(f"  - Images: {frames_to_process}")
     print(f"  - Depth: {frames_to_process}")
     print(f"  - Masks: {frames_to_process}")
@@ -237,7 +241,7 @@ def run_training(
         return_code = process.wait()
 
         if return_code != 0:
-            print(f"\n❌ Training failed with exit code {return_code}")
+            print(f"\nERROR: Training failed with exit code {return_code}")
             return None
 
         # Find checkpoint
@@ -245,21 +249,21 @@ def run_training(
         best_ckpt = ckpt_dir / "fine_best_psnr.pt"
 
         if best_ckpt.exists():
-            print("\n✅ Training complete!")
+            print("\nTraining complete!")
             print(f"  Checkpoint: {best_ckpt}\n")
             return str(best_ckpt)
         else:
             final_ckpt = ckpt_dir / f"fine_step{training_iterations-1:05d}.pt"
             if final_ckpt.exists():
-                print("\n✅ Training complete!")
+                print("\nTraining complete!")
                 print(f"  Checkpoint: {final_ckpt}\n")
                 return str(final_ckpt)
             else:
-                print("\n❌ No checkpoint found")
+                print("\nERROR: No checkpoint found")
                 return None
 
     except Exception as e:
-        print(f"\n❌ Training failed: {e}")
+        print(f"\nERROR: Training failed: {e}")
         import traceback
 
         traceback.print_exc()

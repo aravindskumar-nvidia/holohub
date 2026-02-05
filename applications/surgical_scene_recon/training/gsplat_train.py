@@ -305,6 +305,7 @@ class EndoNeRFParser:
                 mono_depth_min=mono_depth_min, mono_depth_max=mono_depth_max
             )
         elif dataset_type == "scared":
+            # NOTE: SCARED_Dataset format does not support mono_depth_min/mono_depth_max for now;
             self.endo_dataset = SCARED_Dataset(
                 datadir=data_dir, downsample=factor, test_every=test_every, mode=depth_mode
             )
@@ -2363,12 +2364,12 @@ if __name__ == "__main__":
         print(f"    Fine: {cfg.fine_iterations}")
     print("\n  Reconstruction Mode:")
     if cfg.use_masks:
-        print("    ✅ TISSUE-ONLY (tools removed)")
+        print("    TISSUE-ONLY (tools removed)")
         print(f"    - Priority 1 (Multi-frame init): {cfg.multiframe_init}")
         print(f"    - Priority 2 (Accurate mask): {cfg.accurate_mask}")
         print("    - Priority 4 (GT masking): ENABLED")
     else:
-        print("    🔧 FULL SCENE (tissue + tools)")
+        print("    FULL SCENE (tissue + tools)")
         print("    - All masking disabled")
         print("    - Tools will be reconstructed")
     if cfg.save_ply:

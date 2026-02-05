@@ -231,7 +231,7 @@ class GsplatRenderOp(Operator):
         Ks = K.unsqueeze(0)  # [1, 3, 3] - batch dimension
 
         # Compute spherical harmonics degree
-        sh_degree = int(math.sqrt(params["colors"].shape[-2]) - 1)
+        sh_degree = int(round(math.sqrt(params["colors"].shape[-2]))) - 1
 
         # DEBUG: First render details
         if self.frame_count == 0:
@@ -325,7 +325,8 @@ class GsplatRenderOp(Operator):
         # Convert back to log/logit space for PLY compatibility with other viewers
         # Most 3DGS viewers expect scales in log-space and opacities in logit-space
         scales_log = np.log(np.clip(scales, 1e-8, None))
-        opacities_logit = np.log(np.clip(opacities / (1 - np.clip(opacities, None, 1 - 1e-7)), 1e-8, None))
+        opacities_clamped = np.clip(opacities, 1e-7, 1 - 1e-7)
+        opacities_logit = np.log(opacities_clamped / (1 - opacities_clamped))
 
         # Prepare SH coefficients
         # colors shape: [N, num_sh_coeffs, 3] where num_sh_coeffs = (sh_degree + 1)^2
@@ -399,7 +400,7 @@ class GsplatRenderOp(Operator):
         PlyData([el]).write(ply_path)
 
         print(f"[GsplatRender] PLY exported: {N} gaussians")
-        print(f"  - SH degree: {int(np.sqrt(colors.shape[1])) - 1}")
+        print(f"  - SH degree: {int(round(np.sqrt(colors.shape[1]))) - 1}")
         print(f"  - File size: {os.path.getsize(ply_path) / 1024 / 1024:.2f} MB")
 
     def _emit_outputs(self, rendered, op_output, context):

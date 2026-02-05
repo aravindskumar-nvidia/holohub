@@ -205,8 +205,8 @@ The following flags can be passed via `--run-args` to customize training:
 | `--training_iterations` | 2000 | Total training iterations |
 | `--coarse_iterations` | 200 | Coarse stage iterations |
 | `--depth_mode` | `binocular` | Depth source: `binocular` (stereo) or `monocular` |
-| `--mono_depth_min` | 50.0 | Min depth for monocular depth scaling |
-| `--mono_depth_max` | 500.0 | Max depth for monocular depth scaling |
+| `--mono_depth_min` | 50.0 | Min depth for monocular depth scaling (must be < `mono_depth_max`) |
+| `--mono_depth_max` | 500.0 | Max depth for monocular depth scaling (must be > `mono_depth_min`) |
 | `--no_masks` | off | Disable tool masking (full scene with tools) |
 | `--export_ply` | off | Export Gaussians to PLY at configured steps and end of training |
 
@@ -222,6 +222,8 @@ The application supports two depth modes:
 
 - **Binocular** (default): Uses stereo depth maps from the `depth/` folder. This is the standard EndoNeRF format where depth is computed from stereo camera pairs.
 - **Monocular**: Uses monocular depth estimation maps from the `monodepth/` folder. Depth values are scaled to the range `[mono_depth_min, mono_depth_max]` and supervised with Pearson correlation loss instead of absolute L1 depth loss.
+
+> **Note:** The `--mono_depth_min` and `--mono_depth_max` flags only apply to the EndoNeRF dataset type. The SCARED dataset uses its own fixed depth thresholds internally and does not support custom mono depth range parameters.
 
 ### Training Outputs
 

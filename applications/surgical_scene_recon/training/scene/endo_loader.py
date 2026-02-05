@@ -65,6 +65,12 @@ def process_monocular_depth(depth_path, mono_depth_min, mono_depth_max):
         depth: float32 array with processed depth values.
         valid_mask: boolean array where True indicates valid (non-zero) pixels.
     """
+    if mono_depth_min >= mono_depth_max:
+        raise ValueError(
+            f"mono_depth_min ({mono_depth_min}) must be less than "
+            f"mono_depth_max ({mono_depth_max})"
+        )
+
     depth_raw = np.array(Image.open(depth_path))
     if depth_raw.ndim == 3:
         depth_raw = depth_raw[..., 0]
@@ -168,8 +174,14 @@ class EndoNeRF_Dataset(object):
 
         if not (n_images == n_depths == n_masks == n_poses):
             print(
-                f"Warning: Data count mismatch: images={n_images}, depths={n_depths}, "
-                f"masks={n_masks}, poses={n_poses}. Truncating to {n_frames} frames."
+                f"\nWARNING: Data count mismatch detected!\n"
+                f"  images: {n_images}\n"
+                f"  depths: {n_depths}\n"
+                f"  masks:  {n_masks}\n"
+                f"  poses:  {n_poses}\n"
+                f"  Truncating all data to {n_frames} frames (minimum count).\n"
+                f"  This may indicate missing or corrupted data files.\n"
+                f"  Verify your dataset directory: {self.root_dir}"
             )
 
         # truncate all data to match
